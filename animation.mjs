@@ -1,3 +1,5 @@
+import { createShader, createProgram, createVBO, setAttribute } from './common.mjs';
+
 window.addEventListener('load', () => {
   const c = document.getElementById('canvas');
   c.width = 300;
@@ -41,7 +43,7 @@ window.addEventListener('load', () => {
 
   let count = 0;
 
-  (function () {
+  const render = function () {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -78,62 +80,7 @@ window.addEventListener('load', () => {
 
     gl.flush();
 
-    setTimeout(arguments.callee, 1000 / 30);
-  })();
+    setTimeout(render, 1000 / 30);
+  };
+  render();
 });
-
-const setAttribute = (gl, vbo, attL, attS) => {
-  for (const i in vbo) {
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
-    gl.enableVertexAttribArray(attL[i]);
-    gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
-  }
-};
-
-const createShader = (gl, id) => {
-  let shader;
-  const scriptElement = document.getElementById(id);
-  if (!scriptElement) {
-    return undefined;
-  }
-  switch (scriptElement.type) {
-    case 'x-shader/x-vertex':
-      shader = gl.createShader(gl.VERTEX_SHADER);
-      break;
-    case 'x-shader/x-fragment':
-      shader = gl.createShader(gl.FRAGMENT_SHADER);
-      break;
-    default:
-      return undefined;
-  }
-  gl.shaderSource(shader, scriptElement.text);
-  gl.compileShader(shader);
-  if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    return shader;
-  } else {
-    alert(gl.getShaderInfoLog(shader));
-    return undefined;
-  }
-};
-
-const createProgram = (gl, vs, fs) => {
-  const program = gl.createProgram();
-  gl.attachShader(program, vs);
-  gl.attachShader(program, fs);
-  gl.linkProgram(program);
-  if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    gl.useProgram(program);
-    return program;
-  } else {
-    alert(gl.getProgramInfoLog(program));
-    return undefined;
-  }
-};
-
-const createVBO = (gl, data) => {
-  const vbo = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-  return vbo;
-};
